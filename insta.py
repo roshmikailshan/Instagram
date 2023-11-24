@@ -134,8 +134,7 @@ from tqdm import tqdm
         "value": "\"RVA\\0548724221981\\0541732350666:01f7366d7e92a7efa05bdf6a6503936952bcd91139413714fff925c12c0c5c227fe310ff\""
     }
 ]
-# Ask for the profile username
-profile_username = input("Enter the profile username: ")
+
 
 # Function to download a single post
 def download_post(loader, post, target_folder):
@@ -146,31 +145,39 @@ def download_post(loader, post, target_folder):
 
 # Download the profile's media using multithreading
 def download_profile_media(profile_username, output_dir):
+    user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+
     loader = Instaloader()
     loader.context._session.headers.update({'User-Agent': user_agent})
-    
+
     for cookie in cookies:
         loader.context._session.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
-    
+
     profile = Profile.from_username(loader.context, profile_username)
-    
+
     output_path = os.path.join(output_dir, profile_username)
     os.makedirs(output_path, exist_ok=True)
-    
+
     downloaded_files = 0
     threads = []
-    
+
     for post in profile.get_posts():
         thread = threading.Thread(target=download_post, args=(loader, post, output_path))
         threads.append(thread)
         thread.start()
-    
+
     for thread in threads:
         thread.join()
         downloaded_files += 1
-    
+
     print("Download completed!")
     print(f"Total downloaded files: {downloaded_files}")
+
+# Ask for the profile username
+profile_username = input("Enter the profile username: ")
+
+# Ask for the output directory
+output_dir = input("Enter the output directory: ")
 
 # Start the download process
 download_profile_media(profile_username, output_dir)
